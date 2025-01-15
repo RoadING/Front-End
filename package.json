@@ -1,0 +1,41 @@
+{
+  "name": "comp_front",
+  "version": "1.0.0",
+  "description": "this is front",
+  "license": "ISC",
+  "author": "jyoung",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "start": "set NODE_OPTIONS=--openssl-legacy-provider && react-scripts start",
+    "build": "set NODE_OPTIONS=--openssl-legacy-provider && react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
+  },
+  "dependencies": {
+    "axios": "^0.21.1",
+    "bootstrap": "^4.6.0",
+    "ckeditor4-react": "^1.4.2",
+    "jquery": "^3.6.0",
+    "jquery.cookie": "^1.4.1",
+    "ol": "^10.3.1",
+    "react": "^16.14.0",
+    "react-bootstrap": "^1.6.1",
+    "react-dom": "^16.14.0",
+    "react-recaptcha-v3": "^2.0.1",
+    "react-router-dom": "^5.2.0",
+    "react-scripts": "4.0.3"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}
