@@ -15,16 +15,17 @@
   "dependencies": {
     "axios": "^0.21.1",
     "bootstrap": "^4.6.0",
-    "ckeditor4-react": "^1.4.2",
+    "dotenv": "^16.4.7",
     "jquery": "^3.6.0",
     "jquery.cookie": "^1.4.1",
-    "ol": "^10.3.1",
+    "ol": "^6.15.1",
     "react": "^16.14.0",
     "react-bootstrap": "^1.6.1",
     "react-dom": "^16.14.0",
     "react-recaptcha-v3": "^2.0.1",
     "react-router-dom": "^5.2.0",
-    "react-scripts": "4.0.3"
+    "react-scripts": "4.0.3",
+    "ckeditor4-react": "^1.4.1"
   },
   "browserslist": {
     "production": [
@@ -37,5 +38,8 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "@babel/plugin-proposal-optional-chaining": "^7.21.0"
   }
 }
