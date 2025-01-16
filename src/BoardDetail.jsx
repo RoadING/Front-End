@@ -4,13 +4,61 @@ import { NavLink } from "react-router-dom";
 import axios from "axios";
 import $ from "jquery";
 import { commonButtonStyle, commonCSS } from './Header';
+import 'ol/ol.css';
+import Map from 'ol/Map';
+import View from 'ol/View';
+import TileLayer from 'ol/layer/Tile';
+import OSM from 'ol/source/OSM';
+import { fromLonLat } from 'ol/proj';
+import { Vector as VectorLayer } from 'ol/layer';
+import { Vector as VectorSource } from 'ol/source';
+import { Feature } from 'ol';
+import { Point } from 'ol/geom';
+import { Style, Icon } from 'ol/style';
+
 axios.defaults.withCredentials = true;
 const headers = { withCredentials: true };
 
 class BoardDetail extends Component {
   state = {
-    board: [],
-    isWriter: false
+    board: []
+  };
+
+  showMap = (coordinates) => {
+    const vectorSource = new VectorSource();
+    const vectorLayer = new VectorLayer({
+      source: vectorSource
+    });
+
+    const map = new Map({
+      target: 'map',
+      layers: [
+        new TileLayer({
+          source: new OSM()
+        }),
+        vectorLayer
+      ],
+      view: new View({
+        center: fromLonLat(coordinates),
+        zoom: 15
+      })
+    });
+
+    const markerStyle = new Style({
+      image: new Icon({
+        src: 'https://cdn4.iconfinder.com/data/icons/small-n-flat/24/map-marker-512.png',
+        scale: 0.1,
+        anchor: [0.5, 1],
+        anchorXUnits: 'fraction',
+        anchorYUnits: 'fraction'
+      })
+    });
+
+    const marker = new Feature({
+      geometry: new Point(fromLonLat(coordinates))
+    });
+    marker.setStyle(markerStyle);
+    vectorSource.addFeature(marker);
   };
 
   componentDidMount() {
@@ -51,10 +99,6 @@ class BoardDetail extends Component {
       _id: this.props.location.query._id
     };
 
-    const marginBottom = {
-      marginBottom: 5
-    };
-
     axios
       .post("http://localhost:8080/board/detail", send_param)
       .then(returnData => {
@@ -79,6 +123,12 @@ class BoardDetail extends Component {
                   </tr>
                 </tbody>
               </Table>
+              <div id="map" style={{ width: '100%', height: '400px', marginBottom: '10px' }}></div>
+              {returnData.data.board[0].address && (
+                <div style={{ marginBottom: '10px' }}>
+                  위치: {returnData.data.board[0].address}
+                </div>
+              )}
               {isWriter && (
                 <div>
                   <style>{commonCSS}</style>
@@ -110,9 +160,11 @@ class BoardDetail extends Component {
               )}
             </div>
           );
-          this.setState({
-            board: board,
-            isWriter: isWriter
+
+          this.setState({ board: board }, () => {
+            if (returnData.data.board[0].coordinates) {
+              this.showMap(returnData.data.board[0].coordinates);
+            }
           });
         }
       })

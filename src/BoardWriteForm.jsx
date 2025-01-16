@@ -20,6 +20,17 @@ import { Style, Icon } from 'ol/style';
 axios.defaults.withCredentials = true;
 const headers = { withCredentials: true };
 
+// 상단에 마커 스타일을 공통으로 정의
+const markerStyle = new Style({
+  image: new Icon({
+    src: 'https://cdn4.iconfinder.com/data/icons/small-n-flat/24/map-marker-512.png',
+    scale: 0.1,
+    anchor: [0.5, 1],
+    anchorXUnits: 'fraction',
+    anchorYUnits: 'fraction'
+  })
+});
+
 class BoardWriteForm extends Component {
   state = {
     data: "",
@@ -34,8 +45,30 @@ class BoardWriteForm extends Component {
   componentDidMount() {
     if (this.props.location.query !== undefined) {
       this.boardTitle.value = this.props.location.query.title;
+      
+      // 수정 시 기존 좌표와 주소 정보 설정
+      axios
+        .post("http://localhost:8080/board/detail", {
+          headers,
+          _id: this.props.location.query._id
+        })
+        .then(returnData => {
+          if (returnData.data.board[0]) {
+            this.setState({
+              coordinates: returnData.data.board[0].coordinates,
+              address: returnData.data.board[0].address
+            }, () => {
+              this.initMap();
+            });
+          }
+        })
+        .catch(err => {
+          console.log(err);
+          this.initMap();
+        });
+    } else {
+      this.initMap();
     }
-    this.initMap();
   }
 
   componentWillMount() {
@@ -47,13 +80,18 @@ class BoardWriteForm extends Component {
   }
 
   initMap = () => {
-    // 벡터 레이어 초기화
     this.vectorSource = new VectorSource();
     this.vectorLayer = new VectorLayer({
       source: this.vectorSource
     });
 
-    // 지도 초기화 (대한민국 중심)
+    // 초기 중심 좌표 설정 (기존 좌표가 있으면 그 위치, 없으면 대한민국 중심)
+    const initialCoordinates = this.state.coordinates ? 
+      fromLonLat(this.state.coordinates) : 
+      fromLonLat([127.7669, 35.9078]);
+
+    const initialZoom = this.state.coordinates ? 15 : 7;
+
     this.map = new Map({
       target: 'map',
       layers: [
@@ -63,20 +101,30 @@ class BoardWriteForm extends Component {
         this.vectorLayer
       ],
       view: new View({
-        center: fromLonLat([127.7669, 35.9078]),
-        zoom: 7
+        center: initialCoordinates,
+        zoom: initialZoom
       })
     });
+
+    // 기존 좌표가 있다면 마커 표시
+    if (this.state.coordinates) {
+      const feature = new Feature({
+        geometry: new Point(fromLonLat(this.state.coordinates))
+      });
+      feature.setStyle(markerStyle);
+      this.vectorSource.addFeature(feature);
+    }
 
     // 클릭 이벤트 처리
     this.map.on('click', async (evt) => {
       const coordinates = transform(evt.coordinate, 'EPSG:3857', 'EPSG:4326');
       
-      // 마커 추가
+      // 마커 업데이트
       this.vectorSource.clear();
       const feature = new Feature({
         geometry: new Point(evt.coordinate)
       });
+      feature.setStyle(markerStyle);
       this.vectorSource.addFeature(feature);
 
       // 주소 가져오기
@@ -99,7 +147,7 @@ class BoardWriteForm extends Component {
         alert('주소 변환에 실패했습니다. 다시 시도해주세요.');
       }
     });
-  }
+  };
 
   writeBoard = () => {
     let url;
